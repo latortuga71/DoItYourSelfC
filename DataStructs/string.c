@@ -35,8 +35,47 @@ int string_append(string_t* string, const char *data){
     return string->length;
 }
 
-void string_reverse(string_t* string){
+void string_insert(string_t* string,const char* data){
+    // to do 
+}
+void string_replace(string_t* string,const char* old, const char* new){
+    // this is a tough one
+}
+
+int string_findf(string_t* string,const char *data){
+    int data_length = strlen(data);
     int length = strlen(string->value);
+    for (int x = 0; x < length; x++){
+        if (strncmp(&string->value[x],data,data_length) == 0) {
+            return x;
+        }
+    }
+    return 0;
+}
+
+int string_findl(string_t* string,const char *data){
+    int data_length = strlen(data);
+    int length = strlen(string->value);
+    for (; length > 0; length--){
+        if (strncmp(&string->value[length],data,data_length) == 0) {
+            return length;
+        }
+    }
+    return 0;
+}
+
+int string_in(string_t* string,const char* data){
+    int data_length = strlen(data);
+    int length = strlen(string->value);
+    for (int x = 0; x < length; x++){
+        if (strncmp(&string->value[x],data,data_length) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void string_reverse(string_t* string){
     char *start = string->value;
     char *end = string->value;
     while (*end){
@@ -51,6 +90,26 @@ void string_reverse(string_t* string){
     }
 }
 
+string_t* string_slice(string_t* string,int start,int end){
+    int len = strlen(string->value);
+    int bufferSz = end - start + 1;
+    char *tempBuffer = malloc(sizeof(char) * bufferSz);
+    string_t* result;
+    if (start < end && start < len - 1 && end <= len){
+        for (int x = 0; start < end; start++){
+            char h = string->value[start];
+            tempBuffer[x] = h;
+            x++;
+        }
+    } else {
+        printf("index out of bounds!\n");
+        return NULL;
+    }
+    result = string_init(tempBuffer);
+    free(tempBuffer);
+    return result;
+}
+
 char* string_at(string_t* string,int index){
     if (index > string->length){
         return NULL; 
@@ -59,20 +118,16 @@ char* string_at(string_t* string,int index){
     }
 }
 
-char string_front(string_t* string){
-    return string->value[0];
-} 
-
-char string_back(string_t* string){
-    return string->value[strlen(string->value) - 1];
-}
-
 void string_print(string_t* string){
     printf("%s\n",string->value);
 }
 
 int string_size(string_t* string){
     return strlen(string->value) - 1;
+}
+
+string_t* string_copy(string_t* string){
+    return string_init(string->value);
 }
 
 void delete_string(string_t* string){
