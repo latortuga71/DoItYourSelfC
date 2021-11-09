@@ -35,9 +35,39 @@ int string_append(string_t* string, const char *data){
     return string->length;
 }
 
-void string_insert(string_t* string,const char* data){
-    // to do 
+int string_insert(string_t* string,const char* data,int index){
+    int len = strlen(string->value);
+    int delta = len - index;
+    int data_len = strlen(data);
+    int total_size = len + data_len;
+    if (index > len){
+        return 0;
+    }
+    // index is valid
+    char *tmp = malloc(sizeof(char) * total_size);
+    // copy string up until index into new buffer
+    strncpy(tmp,string->value,index);
+    // copy data to insert into buffer
+    strncpy(&tmp[index],data,data_len);
+    // copy everything after insert into buffer
+    strncpy(&tmp[index+data_len],&string->value[index],delta);
+    // realloc old buffer if needed and copy new buffer into it
+    while (string->length < total_size){
+        int realloc_length = string->length * 2;
+        printf("Reallocating memory to string insert %d\n",realloc_length);
+        char* r = realloc(string->value,sizeof(char) * realloc_length); 
+        if (r == NULL){
+            printf("Failed to realloc for string append!\n");
+            return 0;
+        }
+        string->value = r;
+        string->length = realloc_length;
+    }
+    strncpy(string->value,tmp,total_size);
+    free(tmp);
+    return 1;
 }
+
 void string_replace(string_t* string,const char* old, const char* new){
     // this is a tough one
 }
@@ -122,7 +152,7 @@ void string_print(string_t* string){
     printf("%s\n",string->value);
 }
 
-int string_size(string_t* string){
+int string_length(string_t* string){
     return strlen(string->value) - 1;
 }
 

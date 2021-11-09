@@ -3,7 +3,8 @@
 
 
 int main(){
-    string_t* hello = string_init("hello from hell");
+    string_t* hello = string_init("Follow white rabbit.");
+    string_insert(hello,"the ",7);
     string_print(hello);
     delete_string(hello);
     /*
