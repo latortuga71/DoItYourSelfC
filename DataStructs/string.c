@@ -1,14 +1,14 @@
 #include "string.h"
 
 string_t* __new_string(){
-    return(string_t*)malloc(sizeof(size_t));
+    return(string_t*)malloc(sizeof(string_t));
 }
 
 string_t* string_init(const char * data){
     string_t* string_object = __new_string();
-    int length = strlen(data);
+    int length = strlen(data) + 1 ;
     string_object->length = length + 1;
-    string_object->value = malloc(sizeof(char)* length);
+    string_object->value = malloc(sizeof(char)* string_object->length);
     if (string_object -> value == NULL) {
         printf("Failed allocate memory for string!\n");
         return NULL;
@@ -68,8 +68,39 @@ int string_insert(string_t* string,const char* data,int index){
     return 1;
 }
 
-void string_replace(string_t* string,const char* old, const char* new){
-    // this is a tough one
+string_t* string_replace(string_t* string,const char* old, const char* new){
+    /* found this and it was close to what i was doing but better
+     * https://stackoverflow.com/questions/779875/what-function-is-to-replace-a-substring-from-a-string-in-c
+     * 
+    */
+    char* insert;
+    char* tmp;
+    char* result;
+    int count;
+    int length_old = strlen(old);
+    int length_new = strlen(new);
+    int length_from;
+    insert = string->value;
+    for (count = 0; tmp = strstr(insert,old); ++count){
+        insert = tmp + length_old;
+    }
+    tmp = result = malloc(strlen(string->value) + (length_new - length_old) * count + 1);
+    if (!tmp)
+        return NULL;
+    while (count--){
+        insert = strstr(string->value,old);
+        length_from = insert - string->value;
+        tmp = strncpy(tmp,string->value,length_from) + length_from;
+        tmp = strcpy(tmp,new) + length_new;
+        string->value += length_from + length_new;
+    }
+    strcpy(tmp,string->value);
+    // added this to allow myself to free without crashing
+    while(string->value)
+        --string->value;
+    string_t* string_t_result = string_init(result);
+    free(result);
+    return string_t_result;
 }
 
 int string_findf(string_t* string,const char *data){

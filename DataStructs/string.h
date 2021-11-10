@@ -18,7 +18,7 @@ string_t* string_init(const char*);
 int string_append(string_t*,const char*);
 int string_length(string_t*);
 void string_reverse(string_t*);
-void string_replace(string_t*,const char*,const char*);
+string_t* string_replace(string_t*,const char*,const char*);
 int string_insert(string_t*, const char*,int);
 string_t* string_copy(string_t*);
 string_t* string_slice(string_t*,int,int);
