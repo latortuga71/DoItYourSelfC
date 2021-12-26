@@ -57,14 +57,17 @@ void debugError(const char* );
 bool sendHttpRequest(Request*,const char*,int);
 void buildRequest(Request*,const char*);
 bool buildUrlParameters(Request*);
-bool addUrlParameter(Request*,UrlParameter*);
+
 void printUrlParameters(Request*);
+void printHeaders(Request*);
+void printBodyParameters(Request*);
+
 bool addHeader(Request*,Header*);
+bool addBodyParameter(Request*,BodyParameter*);
+bool addUrlParameter(Request*,UrlParameter*);
+
 char* buildHeaders(Request*);
 
 // TO DOS 
-void addBodyParameter(Request*,BodyParameter*);
 
-void buildBodyParameters(Request*);
-void printHeaders(Request*);
-void printBodyParameters(Request*);
+char* buildBodyParameters(Request*);

@@ -1,9 +1,14 @@
 from flask import Flask,request
+import json
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route("/",methods = ["POST","GET"])
 def hello_world():
+    if request.method == "POST":
+        print(json.dumps(request.form))
+    else:
+        print(json.dumps(request.args))
     print(request.headers)
     return "<p>Hello, World!</p>"
 

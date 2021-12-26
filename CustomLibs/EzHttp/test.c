@@ -1,25 +1,26 @@
 #include "Requests.h"
 
-// workflow
-// new param, add param, build param
-// at the end build request
-// then send request
+
+// How it works
+// Create request struct
+// Create headers, url parameters, post parameters
+// Add them to the request struct
+// build the request struct
+// send the request
+// free all structs
 
 int main(){
-    Request* r = newRequest("GET","/");
-    Header* h = newHeader("Authorization","TESTER");
-    //Header* hum = newHeader("Host","Latortuga71DesktopServer.com");
+    Request* r = newRequest("POST","/");
+    Header* h = newHeader("Authorization","somebase64==");
+    BodyParameter* pass = newBodyParameter("password","supesuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodyrlongcomplicatedpasswordnobodycanguess!!!");
     addHeader(r,h);
-    //addHeader(r,hum);
-    //UrlParameter* up = newUrlParameter("user","teesteresteresteresteresteresteresteresteresteresteresteresteresteresteresteresteresteresteresteresteresteresteresterster");
-    //UrlParameter* u = newUrlParameter("user","tester");
-    //addUrlParameter(r,u);
-    //addUrlParameter(r,up);
-    printHeaders(r);
-    // build request runs all the builds on url post param and headers
+    addBodyParameter(r,pass);
     buildRequest(r,"localhost");
     sendHttpRequest(r,"127.0.0.1",5000);
-    // cleanup always
+
+
+    // CLEANUP
     deleteHeader(h);
+    deleteBodyParameter(pass);
     deleteRequest(r);
 }
