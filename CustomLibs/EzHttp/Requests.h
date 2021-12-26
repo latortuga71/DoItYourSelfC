@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -39,18 +40,31 @@ typedef struct Request {
 Request* newRequest(const char* type,const char* path);
 UrlParameter* newUrlParameter(const char* key, const char* value);
 BodyParameter* newBodyParameter(const char* key, const char* value);
+Header* newHeader(const char* key,const char* value);
 
-void sendHttpRequest(Request*,const char*,int);
-void buildRequest(Request*);
-void buildUrlParameters(Request*);
-void addUrlParameter(Request*,UrlParameter*);
+void deleteRequest(Request*);
+void deleteUrlParameter(UrlParameter*);
+void deleteHeader(Header*);
+void deleteBodyParameter(BodyParameter*);
+void deleteRequestHeaders(Request* );
+void deleteRequestUrlParams(Request*);
+
+void exitError(const char*);
+void warningError(const char* );
+void debugError(const char* );
+
+
+bool sendHttpRequest(Request*,const char*,int);
+void buildRequest(Request*,const char*);
+bool buildUrlParameters(Request*);
+bool addUrlParameter(Request*,UrlParameter*);
 void printUrlParameters(Request*);
+bool addHeader(Request*,Header*);
+char* buildHeaders(Request*);
 
 // TO DOS 
-void addHeader(Request*,Header*);
 void addBodyParameter(Request*,BodyParameter*);
 
 void buildBodyParameters(Request*);
-void buildHeaders(Request*);
 void printHeaders(Request*);
 void printBodyParameters(Request*);
