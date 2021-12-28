@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 #define MAX_HEADERS 100
 #define MAX_URLPARAM 25
@@ -29,7 +31,7 @@ typedef struct Request {
     char* type;
     char* path;
     size_t request_size;
-    char* request_payload; // GET / HTTP/1.1\r\nHeader:Value\r\n\r\n\r\nUsername=test&password=test\r\n
+    char* request_payload; 
     Header** headers;
     BodyParameter** post_parameters;
     UrlParameter** url_parameters;
@@ -54,9 +56,13 @@ void warningError(const char* );
 void debugError(const char* );
 
 
-bool sendHttpRequest(Request*,const char*,int);
+bool sendHttpRequest(Request*,const char*,const char* port);
+bool sendHttpsRequest(Request*,const char*,const char* port);
+SSL_CTX* InitSSLCtx();
+
 void buildRequest(Request*,const char*);
 bool buildUrlParameters(Request*);
+char* buildBodyParameters(Request*);
 
 void printUrlParameters(Request*);
 void printHeaders(Request*);
@@ -68,6 +74,4 @@ bool addUrlParameter(Request*,UrlParameter*);
 
 char* buildHeaders(Request*);
 
-// TO DOS 
 
-char* buildBodyParameters(Request*);

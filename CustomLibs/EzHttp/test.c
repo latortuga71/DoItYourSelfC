@@ -10,17 +10,18 @@
 // free all structs
 
 int main(){
-    Request* r = newRequest("POST","/");
-    Header* h = newHeader("Authorization","somebase64==");
-    BodyParameter* pass = newBodyParameter("password","supesuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodyrlongcomplicatedpasswordnobodycanguess!!!");
-    addHeader(r,h);
-    addBodyParameter(r,pass);
-    buildRequest(r,"localhost");
-    sendHttpRequest(r,"127.0.0.1",5000);
+    Request* r = newRequest("GET","/");
+    //Header* h = newHeader("Authorization","somebase64==");
+    //BodyParameter* pass = newBodyParameter("password","supesuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodysuperlongcomplicatedpasswordnobodyrlongcomplicatedpasswordnobodycanguess!!!");
+    //addHeader(r,h);
+    //addBodyParameter(r,pass);
+    buildRequest(r,"duckduckgo.com");
+    //sendHttpRequest(r,"httpforever.com",80);
+    sendHttpsRequest(r,"duckduckgo.com","443");
 
 
     // CLEANUP
-    deleteHeader(h);
-    deleteBodyParameter(pass);
+    //deleteHeader(h);
+    //deleteBodyParameter(pass);
     deleteRequest(r);
 }

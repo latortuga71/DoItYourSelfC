@@ -273,12 +273,15 @@ void buildRequest(Request* r, const char* hostname){
     int body_content_length = strlen(body_parameters);
     char body_content_length_str[100];
     sprintf(body_content_length_str,"%d",body_content_length);
-    Header* content_length = newHeader("Content-Length",body_content_length_str);
+    //Header* content_length = newHeader("Content-Length",body_content_length_str);
+    Header* accept_header = newHeader("accept","*/*");
     Header* content_type = newHeader("Content-Type","application/x-www-form-urlencoded");
     if (!addHeader(r,content_type))
         warningError("Failed to add content type header");
-    if (!addHeader(r,content_length))
-        warningError("Failed to add content length header");
+    if (!addHeader(r,accept_header))
+        warningError("Failed to add accept header");
+    //if (!addHeader(r,content_length))
+    //    warningError("Failed to add content length header");
     /// Build Headers ///
     char* headers_payload = buildHeaders(r); // gets headers block into pointer to heap
     if (headers_payload == NULL)
@@ -291,21 +294,45 @@ void buildRequest(Request* r, const char* hostname){
     size_t total_base = type_size + path_size + headers_size + body_size + 15;
     r->request_size = total_base;
     r->request_payload = malloc(sizeof(char) * total_base);
-    sprintf(r->request_payload,"%s %s HTTP/1.1\n%s\r\n%s\r\n",r->type,r->path,headers_payload,body_parameters);
-    //printf("%s",r->request_payload);
+    sprintf(r->request_payload,"%s %s HTTP/1.1\n%s\n%s",r->type,r->path,headers_payload);//body_parameters);
+    printf("%s",r->request_payload);
+    printf("#############\n\n\n\n");
     //  Clean up Allocations ///
     deleteHeader(host_header);
     deleteHeader(user_agent);
-    deleteHeader(content_length);
+    //deleteHeader(content_length);
     deleteHeader(content_type);
     free(headers_payload);
     free(body_parameters);
 }
 
-bool sendHttpRequest(Request* r, const char* hostname,int port){
-    char* response = malloc(sizeof(char) * 1);
+SSL_CTX* InitSSLCtx(){
+    SSL_METHOD *method;
+    SSL_CTX *ctx;
+    OpenSSL_add_all_algorithms();  /* Load cryptos, et.al. */
+    SSL_load_error_strings();   /* Bring in and register error messages */
+    //method = TLSv1_2_client_method();  /* Create new client-method instance 
+    method = SSLv23_client_method();
+    ctx = SSL_CTX_new(method);   /* Create new context */
+    if ( ctx == NULL )
+    {
+        ERR_print_errors_fp(stderr);
+        abort();
+    }
+    return ctx;
+}
+
+bool sendHttpsRequest(Request* r, const char* hostname,const char* port){
+    // SSL SETUP
+    SSL_CTX* ctx;
+    SSL* ssl;
+    SSL_library_init();
+    ctx = InitSSLCtx();
+    ssl = SSL_new(ctx);
+
+    char* response = calloc(0,sizeof(char));
     size_t resp_sz;
-    size_t resp_buffer_len = 512;
+    size_t resp_buffer_len = 1024;
     char resp_buffer[resp_buffer_len];
     int status,socketfd;
     struct addrinfo hints;
@@ -314,7 +341,65 @@ bool sendHttpRequest(Request* r, const char* hostname,int port){
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     // gets ip address for hostname
-    if ((status = getaddrinfo(hostname,"http", &hints,&res)) != 0){
+    if ((status = getaddrinfo(hostname,port, &hints,&res)) != 0){
+        warningError("Failed to call getaddrinfo");
+        return false;
+    }
+    // free res later
+    socketfd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+    if (socketfd == -1){
+        warningError("Failed to open socket");
+        return false;
+    }
+    if (connect(socketfd,res->ai_addr,res->ai_addrlen) != 0 ){
+        warningError("Failed to connect");
+        return false;
+    }
+    freeaddrinfo(res);
+    // SSL SET SOCKET FD
+    SSL_set_fd(ssl,socketfd);
+    if (SSL_connect(ssl) == -1){
+        warningError("Failed to connect via ssl.");
+        SSL_free(ssl);
+        SSL_CTX_free(ctx);
+        return false;
+    }
+    // send
+    int bytes_recv;
+    //int bytes_sent = send(socketfd,r->request_payload,r->request_size,0);
+    int bytes_sent = SSL_write(ssl,r->request_payload,r->request_size);
+    if (bytes_sent <= 0) {
+        warningError("Failed to write bytes over ssl");
+        SSL_free(ssl);
+        SSL_CTX_free(ctx);
+        return false;
+    }
+    while ((bytes_recv = SSL_read(ssl,resp_buffer,resp_buffer_len)) > 0){
+        resp_sz += bytes_recv;
+        response = realloc(response,sizeof(char) * resp_sz);
+        strncat(response,resp_buffer,bytes_recv);
+    }
+    printf("%s",response);
+    free(response);
+    SSL_free(ssl);
+    close(socketfd);
+    SSL_CTX_free(ctx);
+    return true;
+}
+
+bool sendHttpRequest(Request* r, const char* hostname,const char* port){
+    char* response = calloc(0,sizeof(char));
+    size_t resp_sz;
+    size_t resp_buffer_len = 1024;
+    char resp_buffer[resp_buffer_len];
+    int status,socketfd;
+    struct addrinfo hints;
+    struct addrinfo* res;
+    memset(&hints,0,sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    // gets ip address for hostname
+    if ((status = getaddrinfo(hostname, port, &hints,&res)) != 0){
         warningError("Failed to call getaddrinfo");
         return false;
     }
@@ -330,15 +415,13 @@ bool sendHttpRequest(Request* r, const char* hostname,int port){
     }
     freeaddrinfo(res);
     // send
-    int bytes_recv = 1; // so we actualy get into the while loop
+    int bytes_recv; // so we actualy get into the while loop
     int bytes_sent = send(socketfd,r->request_payload,r->request_size,0);
     // recv
-    while (recv(socketfd,resp_buffer,resp_buffer_len,0) > 0 ){
-        if (bytes_recv > 0){
-            response = realloc(response,sizeof(char) * resp_buffer_len + resp_sz);
-            strncat(response,resp_buffer,resp_buffer_len);
-            resp_sz += resp_buffer_len;
-        }
+    while ((bytes_recv = recv(socketfd,resp_buffer,resp_buffer_len,0)) > 0){
+        resp_sz += bytes_recv;
+        response = realloc(response,sizeof(char) * resp_sz);
+        strncat(response,resp_buffer,bytes_recv);
     }
     printf("%s",response);
     free(response);
