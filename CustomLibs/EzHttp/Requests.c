@@ -274,12 +274,12 @@ void buildRequest(Request* r, const char* hostname){
     char body_content_length_str[100];
     sprintf(body_content_length_str,"%d",body_content_length);
     //Header* content_length = newHeader("Content-Length",body_content_length_str);
-    Header* accept_header = newHeader("accept","*/*");
+    //Header* accept_header = newHeader("accept","*/*");
     Header* content_type = newHeader("Content-Type","application/x-www-form-urlencoded");
     if (!addHeader(r,content_type))
         warningError("Failed to add content type header");
-    if (!addHeader(r,accept_header))
-        warningError("Failed to add accept header");
+    //if (!addHeader(r,accept_header))
+    //i    warningError("Failed to add accept header");
     //if (!addHeader(r,content_length))
     //    warningError("Failed to add content length header");
     /// Build Headers ///
@@ -293,10 +293,10 @@ void buildRequest(Request* r, const char* hostname){
     size_t body_size = strlen(body_parameters);
     size_t total_base = type_size + path_size + headers_size + body_size + 15;
     r->request_size = total_base;
-    r->request_payload = malloc(sizeof(char) * total_base);
-    sprintf(r->request_payload,"%s %s HTTP/1.1\n%s\n%s",r->type,r->path,headers_payload);//body_parameters);
+    r->request_payload = calloc(total_base,sizeof(char));
+    // HTTP/1.0 to make sure we only get one response
+    sprintf(r->request_payload,"%s %s HTTP/1.0\n%s\r\n",r->type,r->path,headers_payload); //,body_parameters);
     printf("%s",r->request_payload);
-    printf("#############\n\n\n\n");
     //  Clean up Allocations ///
     deleteHeader(host_header);
     deleteHeader(user_agent);
@@ -379,10 +379,10 @@ bool sendHttpsRequest(Request* r, const char* hostname,const char* port){
         response = realloc(response,sizeof(char) * resp_sz);
         strncat(response,resp_buffer,bytes_recv);
     }
+    close(socketfd);
     printf("%s",response);
     free(response);
     SSL_free(ssl);
-    close(socketfd);
     SSL_CTX_free(ctx);
     return true;
 }
