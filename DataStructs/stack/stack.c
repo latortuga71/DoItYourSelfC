@@ -12,6 +12,16 @@ void delete_stack(Stack* s){
     free(s);
 }
 
+bool is_stack_empty(Stack* s){
+    return s->length == 0;
+}
+
+int peek_stack(Stack* s){
+    if (s->length == 0)
+        return 0;
+    return s->values[s->length - 1];
+}
+
 int pop_stack(Stack* s){
     if (s->length <= 0){
         printf("ERROR: Cannot pop empty stack");
